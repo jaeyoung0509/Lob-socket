@@ -4,25 +4,25 @@ import threading
 import time
 from gensim.models import Word2Vec
 import re
-host = "192.168.0.103"
-port = 9999
+host = "10.128.0.2"
+port = 80
 
 def handle_client(client_socket, addr):
     ko = Word2Vec.load('./ko.bin')
     print("접속한 클라이언트의 주소 입니다. : ", addr)
     user = client_socket.recv(1024)
-    str1 = str(user.decode()).split()
-    output_list = []
+    str1 = str(user.decode()).split("and")
+    output_list = ""
     print(str1)
     for i in str1:
         try:
             if (ko.wv.similarity(i, '음식') > 0.3):
-                output_list.append(i)
+                output_list+=","+i
         except Exception as err:
             print("")
     print(output_list)
             # ## string=""
- ###   client_socket.sendall(string.encode())
+    client_socket.sendall(output_list.encode())
     print("1초 후 클라이언트가 종료됩니다.")
     time.sleep(1)
     client_socket.close()
