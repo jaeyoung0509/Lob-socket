@@ -2,6 +2,7 @@ import socket
 import argparse
 import threading
 import time
+from googletrans import Translator
 from gensim.models import Word2Vec
 import re
 host = "10.128.0.2"
@@ -11,21 +12,42 @@ def handle_client(client_socket, addr):
     ko = Word2Vec.load('./ko.bin')
     print("접속한 클라이언트의 주소 입니다. : ", addr)
     user = client_socket.recv(1024)
-    str1 = str(user.decode()).split("and")
+    strUser = str(user.decode())
+    if(isEnglish(strUser)>0):
+        print(1)
+        translator = Translator()
+        print(2)
+        result = translator.translate(strUser , dest = 'ko')
+        strUser = result.text
+       ## strUser = translator.translate(strUser)
+       ## strUser = translator.translate(strUser ,source='en' , target='ko' , verbose=False)
+    if(strUser.find("\n")==1):
+         strUser.rstrip("\n")
+    str1 = strUser.split(",")
     output_list = ""
     print(str1)
     for i in str1:
         try:
-            if (ko.wv.similarity(i, '음식') > 0.3):
-                output_list+=","+i
+            if (ko.wv.similarity(i, '음식') > 0.2):
+                print(i)
+                output_list+=i+","
+                print(output_list)
         except Exception as err:
             print("")
-    print(output_list)
+    print("outputlist"+output_list)
             # ## string=""
     client_socket.sendall(output_list.encode())
     print("1초 후 클라이언트가 종료됩니다.")
-    time.sleep(1)
+    time.sleep(5)
     client_socket.close()
+
+def isEnglish(input_s):
+    e_count = 0
+    for c in input_s:
+        if ord('a') <= ord(c.lower()) <= ord('z'):
+            e_count+=1
+    return e_count
+
 
 def accept_func():
     global server_socket
